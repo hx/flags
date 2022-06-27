@@ -16,6 +16,7 @@ func main() {
 	server := hids.NewHttpServer("127.0.0.1:1234", "hello")
 	a.Input(server)
 	a.Output(server)
+	a.Output(hids.NewPiGPIO(false, 12, 6, 13, 16))
 	err := a.Run()[0]
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
