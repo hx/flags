@@ -25,20 +25,24 @@ func (a *App) Run() []error {
 		output.Update(initialDiff)
 	}
 	var (
-		actionsChan = make(chan actions.Action)
+		actionsChan = make(chan blockingAction)
 		resultsChan = make(chan result)
 		results     = make([]error, len(a.Config.Inputs))
 	)
 	go func() {
-		for signal := range actionsChan {
-			a.handle(signal)
+		for action := range actionsChan {
+			a.handle(action)
 		}
 	}()
 	for i := range a.Config.Inputs {
 		res := result{inputIndex: i}
 		input := a.Config.Inputs[i]
 		go func() {
-			res.err = input.Listen(actionsChan)
+			res.err = input.Listen(func(action actions.Action) chan struct{} {
+				done := make(chan struct{})
+				actionsChan <- blockingAction{action, done}
+				return done
+			})
 			resultsChan <- res
 		}()
 	}
@@ -51,12 +55,18 @@ func (a *App) Run() []error {
 	return results
 }
 
-func (a *App) handle(action actions.Action) {
+func (a *App) handle(action blockingAction) {
 	machine := a.Config.StateMachine
 	previous := machine.Get()
-	action.Perform(machine)
+	action.action.Perform(machine)
 	diff := machine.Get().Diff(previous)
 	for _, output := range a.Config.Outputs {
 		output.Update(diff)
 	}
+	close(action.done)
+}
+
+type blockingAction struct {
+	action actions.Action
+	done   chan struct{}
 }

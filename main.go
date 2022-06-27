@@ -9,10 +9,14 @@ import (
 )
 
 func main() {
-	hid := hids.NewStdio()
+	stdio := hids.NewStdio()
 	machine := states.NewClamp(2)
 	machine.State = 0b1111
-	err := app.NewApp(app.NewConfig(hid, hid, machine)).Run()[0]
+	a := app.NewApp(app.NewConfig(stdio, stdio, machine))
+	server := hids.NewHttpServer("127.0.0.1:1234", "hello")
+	a.Input(server)
+	a.Output(server)
+	err := a.Run()[0]
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

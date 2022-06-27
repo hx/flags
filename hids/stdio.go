@@ -52,12 +52,12 @@ func (s *Stdio) Update(diff states.Diff) {
 	fmt.Fprintf(s.Output, "Changed: %s\n", strings.Join(parts, ", "))
 }
 
-func (s *Stdio) Listen(actionsChan chan actions.Action) error {
+func (s *Stdio) Listen(perform actions.Performer) error {
 	scanner := bufio.NewScanner(s.Input)
 	for scanner.Scan() {
 		if num, err := strconv.Atoi(scanner.Text()); err == nil {
 			if num >= 1 && num <= 64 {
-				actionsChan <- actions.Toggle(num - 1)
+				perform(actions.Toggle(num - 1))
 			} else {
 				fmt.Fprintln(s.Output, "Expected a number between 1 and 64")
 			}
