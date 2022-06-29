@@ -1,4 +1,4 @@
-package hids
+package interfaces
 
 import (
 	"bufio"
@@ -55,9 +55,17 @@ func (s *Stdio) Update(diff states.Diff) {
 func (s *Stdio) Listen(perform actions.Performer) error {
 	scanner := bufio.NewScanner(s.Input)
 	for scanner.Scan() {
-		if num, err := strconv.Atoi(scanner.Text()); err == nil {
+		var (
+			text   = scanner.Text()
+			unsafe = false
+		)
+		if strings.HasSuffix(text, "!") {
+			unsafe = true
+			text = text[:len(text)-1]
+		}
+		if num, err := strconv.Atoi(text); err == nil {
 			if num >= 1 && num <= 64 {
-				perform(actions.Toggle(num - 1))
+				perform(actions.Toggle(num-1), unsafe)
 			} else {
 				fmt.Fprintln(s.Output, "Expected a number between 1 and 64")
 			}

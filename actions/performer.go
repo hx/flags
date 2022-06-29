@@ -1,3 +1,3 @@
 package actions
 
-type Performer func(action Action) chan struct{}
+type Performer func(action Action, isUnsafe bool) chan struct{}

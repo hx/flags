@@ -1,14 +1,12 @@
 package app
 
-import "github.com/hx/flags/states"
-
 type Config struct {
-	StateMachine states.Machine
+	StateMachine StateMachine
 	Inputs       []Input
 	Outputs      []Output
 }
 
-func NewConfig(input Input, output Output, state states.Machine) *Config {
+func NewConfig(input Input, output Output, state StateMachine) *Config {
 	if input == nil || output == nil || state == nil {
 		panic("all arguments must be non-nil")
 	}

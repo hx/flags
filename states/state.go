@@ -27,10 +27,12 @@ func (s State) Apply(diff Diff) State {
 	return s
 }
 
+// Len returns the number of flags represented by the state.
 func (s State) Len() int {
 	return bits.Len(uint(s))
 }
 
+// Count returns the number of flags that are true.
 func (s State) Count() (count int) {
 	for i, l := 0, s.Len(); i < l; i++ {
 		if s.Get(i) {

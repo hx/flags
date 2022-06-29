@@ -1,4 +1,4 @@
-package hids
+package interfaces
 
 import (
 	"github.com/hx/flags/states"

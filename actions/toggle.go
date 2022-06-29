@@ -6,6 +6,6 @@ import (
 
 type Toggle int
 
-func (t Toggle) Perform(state states.Machine) {
-	state.Toggle(int(t))
+func (t Toggle) Apply(state states.State) states.State {
+	return state.Set(int(t), !state.Get(int(t)))
 }

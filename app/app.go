@@ -25,7 +25,7 @@ func (a *App) Run() []error {
 		output.Update(initialDiff)
 	}
 	var (
-		actionsChan = make(chan blockingAction)
+		actionsChan = make(chan actionRequest)
 		resultsChan = make(chan result)
 		results     = make([]error, len(a.Config.Inputs))
 	)
@@ -38,9 +38,9 @@ func (a *App) Run() []error {
 		res := result{inputIndex: i}
 		input := a.Config.Inputs[i]
 		go func() {
-			res.err = input.Listen(func(action actions.Action) chan struct{} {
+			res.err = input.Listen(func(action actions.Action, isUnsafe bool) chan struct{} {
 				done := make(chan struct{})
-				actionsChan <- blockingAction{action, done}
+				actionsChan <- actionRequest{action, done, isUnsafe}
 				return done
 			})
 			resultsChan <- res
@@ -55,10 +55,10 @@ func (a *App) Run() []error {
 	return results
 }
 
-func (a *App) handle(action blockingAction) {
+func (a *App) handle(action actionRequest) {
 	machine := a.Config.StateMachine
 	previous := machine.Get()
-	action.action.Perform(machine)
+	machine.Perform(action.action, action.unsafe)
 	diff := machine.Get().Diff(previous)
 	for _, output := range a.Config.Outputs {
 		output.Update(diff)
@@ -66,7 +66,8 @@ func (a *App) handle(action blockingAction) {
 	close(action.done)
 }
 
-type blockingAction struct {
+type actionRequest struct {
 	action actions.Action
 	done   chan struct{}
+	unsafe bool
 }

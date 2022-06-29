@@ -1,4 +1,4 @@
-package hids
+package interfaces
 
 import (
 	"crypto/subtle"
@@ -62,7 +62,7 @@ func (h *HttpServer) toggle(writer http.ResponseWriter, request *http.Request) {
 		http.Error(writer, err.Error(), 500)
 		return
 	}
-	<-h.perform(actions.Toggle(id))
+	<-h.perform(actions.Toggle(id), request.Header.Get("X-Unsafe") == "1")
 	h.flags(writer, request)
 }
 

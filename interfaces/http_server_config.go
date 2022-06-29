@@ -1,4 +1,4 @@
-package hids
+package interfaces
 
 type HttpServerConfig struct {
 	BindAddress string
