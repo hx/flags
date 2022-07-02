@@ -3,25 +3,29 @@ package main
 import (
 	"fmt"
 	"github.com/hx/flags/app"
+	"github.com/hx/flags/args"
 	"github.com/hx/flags/interfaces"
-	"github.com/hx/flags/machines"
 	"os"
 )
 
 func main() {
+	config, err := args.Read(os.Args[1:], os.Stdout)
+	if err != nil {
+		abort(err)
+	}
+
 	stdio := interfaces.NewStdio()
-	machine := machines.NewDualLimits(2, 4)
-	machine.UnsafeMinimum = 1
-	server := interfaces.NewHttpServer("127.0.0.1:1234", "hello")
-	a := app.NewApp(
-		app.NewConfig(stdio, stdio, machine).
-			Output(interfaces.NewPiGPIO(false, 21, 20, 16, 12)).
-			Input(server).Output(server),
-	)
+	config.Input(stdio).Output(stdio)
+	a := app.NewApp(config)
+
 	for _, err := range a.Run() {
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
+			abort(err)
 		}
 	}
+}
+
+func abort(reason interface{}) {
+	fmt.Fprintln(os.Stderr, reason)
+	os.Exit(1)
 }
