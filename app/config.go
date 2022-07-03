@@ -4,6 +4,7 @@ type Config struct {
 	StateMachine StateMachine
 	Inputs       []Input
 	Outputs      []Output
+	Jobs         []*Job
 }
 
 func NewConfig(input Input, output Output, state StateMachine) *Config {
@@ -30,5 +31,10 @@ func (c *Config) Output(output Output) *Config {
 		panic("output must not be nil")
 	}
 	c.Outputs = append(c.Outputs, output)
+	return c
+}
+
+func (c *Config) Job(job *Job) *Config {
+	c.Jobs = append(c.Jobs, job)
 	return c
 }

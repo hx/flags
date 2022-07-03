@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/hx/flags/actions"
+	"github.com/robfig/cron/v3"
 )
 
 type App struct {
@@ -16,6 +17,16 @@ func NewApp(config *Config) *App {
 }
 
 func (a *App) Run() []error {
+	var scheduler *cron.Cron
+	if len(a.Jobs) > 0 {
+		scheduler = cron.New()
+		for _, job := range a.Jobs {
+			if _, err := scheduler.AddJob(job.Spec, job.Bind(a)); err != nil {
+				panic(err) // TODO
+			}
+		}
+		scheduler.Start()
+	}
 	type result struct {
 		inputIndex int
 		err        error
@@ -50,6 +61,9 @@ func (a *App) Run() []error {
 		result := <-resultsChan
 		results[result.inputIndex] = result.err
 	}
+	if scheduler != nil {
+		scheduler.Stop()
+	}
 	close(resultsChan)
 	close(actionsChan)
 	return results
@@ -63,7 +77,9 @@ func (a *App) handle(action actionRequest) {
 	for _, output := range a.Config.Outputs {
 		output.Update(diff)
 	}
-	close(action.done)
+	if action.done != nil {
+		close(action.done)
+	}
 }
 
 type actionRequest struct {
