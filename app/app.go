@@ -1,8 +1,10 @@
 package app
 
 import (
+	"fmt"
 	"github.com/hx/flags/actions"
 	"github.com/robfig/cron/v3"
+	"time"
 )
 
 type App struct {
@@ -26,6 +28,8 @@ func (a *App) Run() []error {
 			}
 		}
 		scheduler.Start()
+		// TODO: don't assume STDOUT is usable
+		fmt.Printf("Scheduler running in time zone %s\n", time.Now().In(scheduler.Location()).Format("MST"))
 	}
 	type result struct {
 		inputIndex int
