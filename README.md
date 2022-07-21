@@ -2,6 +2,8 @@
 
 Remotely control devices connected to a Raspberry Pi, with some basic programmability.
 
+An iOS client is available from the [iOS App Store](https://apps.apple.com/app/pi-flags/id1634687777?platform=iphone).
+
 ## Installation
 
 Clone the repository:
