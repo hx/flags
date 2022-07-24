@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"crypto/subtle"
+	_ "embed"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"github.com/hx/flags/actions"
@@ -26,6 +27,7 @@ func NewHttpServer(address, passphrase string) *HttpServer {
 	}
 	server.server.Handler = server
 
+	server.router.HandleFunc("/", server.ui).Methods("GET")
 	server.router.HandleFunc("/flags", server.flags).Methods("GET")
 	server.router.HandleFunc("/toggle/{id:\\d|[1-5]\\d|6[0-3]}", server.toggle).Methods("POST")
 
@@ -83,4 +85,12 @@ func (h *HttpServer) flags(writer http.ResponseWriter, _ *http.Request) {
 	}
 	writer.Header().Set("Content-Type", "application/json")
 	writer.Write(append(body, '\n'))
+}
+
+//go:embed http_ui.html
+var httpUI []byte
+
+func (h *HttpServer) ui(writer http.ResponseWriter, _ *http.Request) {
+	writer.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	writer.Write(httpUI)
 }

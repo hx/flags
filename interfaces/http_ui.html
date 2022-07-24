@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Flags</title>
+  <style>
+    body {
+      margin: 0 auto;
+      max-width: 40rem;
+      font-family: -apple-system, "system-ui", "Segoe UI Adjusted", "Segoe UI", "Liberation Sans", sans-serif;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    #flags-list {
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    #flags-list li {
+      list-style: none;
+      width: 25%;
+      flex: 0 1 auto;
+      display: block;
+      background: rgba(255,180,0,0.75);
+      padding: 2rem 0.5rem;
+      box-sizing: border-box;
+      border: #fff 0.3rem solid;
+      border-radius: 0.7rem;
+      cursor: pointer;
+      transition: border-color linear 0.2s;
+    }
+
+    #flags-list li:hover {
+      border-color: #eee;
+    }
+
+    #flags-list li.on {
+      background: rgba(50,215,60,0.75);
+    }
+
+    #flags-list li.off {
+      background: rgba(0,0,0,0.08);
+    }
+
+    #error {
+      color: #800;
+      font-size: 0.85rem;
+    }
+
+    #footnote {
+      font-size: 0.85rem;
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<body>
+<h1>Flags</h1>
+<ul id="flags-list">
+</ul>
+<p id="error"></p>
+<p id="footnote">Updates every 10 seconds. <a href="#">Update manually</a>.</p>
+<script>
+  (() => {
+    const listContainer = document.getElementById('flags-list')
+    const buttonNodes = Array.from({length: 8}, (_, i) => {
+      const listItem = document.createElement('li')
+      listContainer.appendChild(listItem)
+      listItem.innerHTML = `Flag ${i + 1}`
+
+      return listItem
+    })
+
+    function setError(error) {
+      document.getElementById('error').textContent = String(error)
+    }
+
+    function receiveState({flags}) {
+      buttonNodes.forEach(node => node.className = 'off')
+      flags.filter(f => f.state).forEach(flag => {
+        const listItem = buttonNodes[flag.index]
+        if (listItem) {
+          listItem.className = 'on'
+        }
+      })
+    }
+
+    async function query(...args) {
+      setError('')
+      try {
+        receiveState(JSON.parse(await (await fetch(...args)).text()))
+      } catch(e) {
+        setError(e)
+      }
+    }
+
+    const fetchState = () => query('/flags')
+
+    document.querySelector('#footnote a').addEventListener('click', event => {
+      event.preventDefault()
+      fetchState()
+    })
+
+    listContainer.addEventListener('click', event => {
+      const index = buttonNodes.indexOf(event.target)
+      if (index === -1) {
+        return
+      }
+      buttonNodes[index].className = ''
+      query(`/toggle/${index}`, {method: 'POST'})
+    })
+
+    fetchState()
+    setInterval(fetchState, 10000)
+  })()
+</script>
+</body>
+</html>
